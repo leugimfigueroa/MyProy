@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detección de Fraude en Depósitos y Cheques</title>
+    <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.2/dist/brain-browser.min.js"></script>
+    <style>
+        table {
+            width: 80%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Detección de Fraude en Depósitos y Cheques</h1>
+    <p id="prediction">Entrenando la red neuronal, por favor espera...</p>
+
+    <h2>Datos de Entrenamiento</h2>
+    <table id="training-data-table">
+        <thead>
+            <tr>
+                <th>ID Análisis</th>
+                <th>Tipo CC</th>
+                <th>Número</th>
+                <th>Página</th>
+                <th>Línea</th>
+                <th>Fecha Emisión</th>
+                <th>Documento</th>
+                <th>Depósito Efectivo</th>
+                <th>Depósito Registrado</th>
+                <th>Girado</th>
+                <th>Cobrado</th>
+                <th>Nombre</th>
+                <th>RUT</th>
+                <th>V-RUT</th>
+                <th>Orden Documento</th>
+                <th>Orden Fecha</th>
+                <th>Orden Nombre</th>
+                <th>ID Conciliación</th>
+                <th>Año Conciliación</th>
+                <th>Fecha Límite</th>
+                <th>Opción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Filas de datos se agregarán aquí -->
+        </tbody>
+    </table>
+
+    <h2>Predicción</h2>
+    <table id="prediction-data-table">
+        <thead>
+            <tr>
+                <th>ID Análisis</th>
+                <th>Tipo CC</th>
+                <th>Número</th>
+                <th>Página</th>
+                <th>Línea</th>
+                <th>Fecha Emisión</th>
+                <th>Documento</th>
+                <th>Depósito Efectivo</th>
+                <th>Depósito Registrado</th>
+                <th>Girado</th>
+                <th>Cobrado</th>
+                <th>Nombre</th>
+                <th>RUT</th>
+                <th>V-RUT</th>
+                <th>Orden Documento</th>
+                <th>Orden Fecha</th>
+                <th>Orden Nombre</th>
+                <th>ID Conciliación</th>
+                <th>Año Conciliación</th>
+                <th>Fecha Límite</th>
+                <th>Opción</th>
+                <th>¿Fraudulenta?</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Filas de predicción se agregarán aquí -->
+        </tbody>
+    </table>
+
+    <script>
+        // Verificar si la biblioteca Brain.js está cargada
+        if (typeof brain === 'undefined') {
+            document.getElementById('prediction').innerText = 'Error: No se pudo cargar Brain.js';
+            throw new Error('No se pudo cargar Brain.js');
+        }
+
+        // Datos de entrenamiento simulados
+        const trainingData = [
+            {
+                idanalisis: 1, tipocc: 1, numero: 1234567890, pagina: 1, linea: 1, fechaemi: '2023-07-01', 
+                documento: 'DOC001', depefect: 500, depreg: 500, girado: 0, cobrado: 0, nombre: 'Juan Perez', 
+                rut: 12345678, vrut: '9', orden_doc: 'ORD001', orden_fecha: '2023-07-01', orden_nombre: 'Empresa X', 
+                idconcil: 1, anoconcil: 2023, fechalimite: '2023-07-15', opcion: 1, fraudulent: 0 
+            },
+            // Agregar más datos según sea necesario
+        ];
+
+        // Mostrar los datos de entrenamiento en la tabla
+        const trainingTableBody = document.getElementById('training-data-table').querySelector('tbody');
+        trainingData.forEach(item => {
+            const row = document.createElement('tr');
+            Object.values(item).forEach(value => {
+                const cell = document.createElement('td');
+                cell.innerText = value;
+                row.appendChild(cell);
+            });
+            trainingTableBody.appendChild(row);
+        });
+
+        // Convertir valores del ViewModel a un formato numérico para la red neuronal
+        const normalize = data => ({
+            input: [
+                data.tipocc, data.numero / 1e10, data.pagina, data.linea, Date.parse(data.fechaemi) / 1e12,
+                data.depefect / 1e14, data.depreg / 1e14, data.girado / 1e14, data.cobrado / 1e14,
+                data.rut / 1e8, data.idconcil, data.anoconcil / 1e4, Date.parse(data.fechalimite) / 1e12, data.opcion
+            ],
+            output: [data.fraudulent]
+        });
+
+        const normalizedTrainingData = trainingData.map(normalize);
+
+        // Configurar la red neuronal
+        const net = new brain.NeuralNetwork();
+
+        // Entrenar la red neuronal
+        net.train(normalizedTrainingData, {
+            iterations: 2000,
+            log: true,
+            logPeriod: 100,
+            learningRate: 0.3
+        });
+
+        // Datos de prueba para predicción
+        const testData = [
+            {
+                idanalisis: 2, tipocc: 2, numero: 9876543210, pagina: 2, linea: 2, fechaemi: '2023-07-02', 
+                documento: 'DOC002', depefect: 7000, depreg: 7000, girado: 0, cobrado: 0, nombre: 'Maria Lopez', 
+                rut: 87654321, vrut: 'K', orden_doc: 'ORD002', orden_fecha: '2023-07-02', orden_nombre: 'Empresa Y', 
+                idconcil: 2, anoconcil: 2023, fechalimite: '2023-07-16', opcion: 1 
+            },
+            // Agregar más datos según sea necesario
+        ];
+
+        // Normalizar los datos de prueba
+        const normalizedTestData = testData.map(data => [
+            data.tipocc, data.numero / 1e10, data.pagina, data.linea, Date.parse(data.fechaemi) / 1e12,
+            data.depefect / 1e14, data.depreg / 1e14, data.girado / 1e14, data.cobrado / 1e14,
+            data.rut / 1e8, data.idconcil, data.anoconcil / 1e4, Date.parse(data.fechalimite) / 1e12, data.opcion
+        ]);
+
+        // Hacer predicciones y mostrar los resultados en la tabla
+        const predictionTableBody = document.getElementById('prediction-data-table').querySelector('tbody');
+        testData.forEach((item, index) => {
+            const prediction = net.run(normalizedTestData[index]);
+            const row = document.createElement('tr');
+            Object.values(item).forEach(value => {
+                const cell = document.createElement('td');
+                cell.innerText = value;
+                row.appendChild(cell);
+            });
+            const predictionCell = document.createElement('td');
+            predictionCell.innerText = prediction > 0.5 ? 'Sí' : 'No';
+            row.appendChild(predictionCell);
+            predictionTableBody.appendChild(row);
+        });
+
+        // Actualizar mensaje de estado
+        document.getElementById('prediction').innerText = 'Entrenamiento completado. Predicciones realizadas.';
+    </script>
+</body>
+</html>

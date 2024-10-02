@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detección de Fraude en Transacciones Municipales</title>
+    <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.2/dist/brain-browser.min.js"></script>
+    <style>
+        table {
+            width: 80%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Detección de Fraude en Transacciones Municipales</h1>
+    <p id="prediction">Entrenando la red neuronal, por favor espera...</p>
+
+    <h2>Datos de Entrenamiento</h2>
+    <table id="training-data-table">
+        <thead>
+            <tr>
+                <th>Monto</th>
+                <th>Tipo</th>
+                <th>Departamento</th>
+                <th>Hora del Día</th>
+                <th>Fraudulenta</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Filas de datos se agregarán aquí -->
+        </tbody>
+    </table>
+
+    <h2>Predicción</h2>
+    <table id="prediction-data-table">
+        <thead>
+            <tr>
+                <th>Monto</th>
+                <th>Tipo</th>
+                <th>Departamento</th>
+                <th>Hora del Día</th>
+                <th>¿Fraudulenta?</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Filas de predicción se agregarán aquí -->
+        </tbody>
+    </table>
+
+    <script>
+        // Verificar si la biblioteca Brain.js está cargada
+        if (typeof brain === 'undefined') {
+            document.getElementById('prediction').innerText = 'Error: No se pudo cargar Brain.js';
+            throw new Error('No se pudo cargar Brain.js');
+        }
+
+        // Datos de entrenamiento simulados
+        const trainingData = [
+            { amount: 500, type: 'transferencia', department: 1, time: 10, fraudulent: 0 },
+            { amount: 5000, type: 'cheque', department: 3, time: 2, fraudulent: 1 },
+            { amount: 200, type: 'transferencia', department: 1, time: 15, fraudulent: 0 },
+            { amount: 10000, type: 'cheque', department: 2, time: 3, fraudulent: 1 },
+            { amount: 150, type: 'transferencia', department: 1, time: 20, fraudulent: 0 },
+            { amount: 250, type: 'cheque', department: 3, time: 23, fraudulent: 1 },
+            // Agregar más datos según sea necesario
+        ];
+
+        // Convertir tipo de transacción a valor numérico
+        const typeToValue = type => type === 'transferencia' ? 0 : 1;
+
+        // Normalizar los datos de entrenamiento
+        const normalize = data => ({
+            input: [data.amount / 10000, typeToValue(data.type), data.department / 3, data.time / 24],
+            output: [data.fraudulent]
+        });
+
+        const normalizedTrainingData = trainingData.map(normalize);
+
+        // Mostrar los datos de entrenamiento en la tabla
+        const trainingTableBody = document.getElementById('training-data-table').querySelector('tbody');
+        trainingData.forEach(item => {
+            const row = document.createElement('tr');
+            Object.values(item).forEach(value => {
+                const cell = document.createElement('td');
+                cell.innerText = value;
+                row.appendChild(cell);
+            });
+            trainingTableBody.appendChild(row);
+        });
+
+        // Configurar la red neuronal
+        const net = new brain.NeuralNetwork();
+
+        // Entrenar la red neuronal
+        net.train(normalizedTrainingData, {
+            iterations: 2000,
+            log: true,
+            logPeriod: 100,
+            learningRate: 0.3
+        });
+
+        // Datos de prueba para predicción
+        const testData = [
+            { amount: 75, type: 'transferencia', department: 2, time: 18 },
+            { amount: 7000, type: 'cheque', department: 3, time: 5 },
+            { amount: 100, type: 'transferencia', department: 1, time: 12 },
+            { amount: 3000, type: 'cheque', department: 2, time: 22 }
+        ];
+
+        // Normalizar los datos de prueba
+        const normalizedTestData = testData.map(data => [data.amount / 10000, typeToValue(data.type), data.department / 3, data.time / 24]);
+
+        // Hacer predicciones y mostrar los resultados en la tabla
+        const predictionTableBody = document.getElementById('prediction-data-table').querySelector('tbody');
+        testData.forEach((item, index) => {
+            const prediction = net.run(normalizedTestData[index]);
+            const row = document.createElement('tr');
+            Object.values(item).forEach(value => {
+                const cell = document.createElement('td');
+                cell.innerText = value;
+                row.appendChild(cell);
+            });
+            const predictionCell = document.createElement('td');
+            predictionCell.innerText = prediction > 0.5 ? 'Sí' : 'No';
+            row.appendChild(predictionCell);
+            predictionTableBody.appendChild(row);
+        });
+
+        // Actualizar mensaje de estado
+        document.getElementById('prediction').innerText = 'Entrenamiento completado. Predicciones realizadas.';
+    </script>
+</body>
+</html>

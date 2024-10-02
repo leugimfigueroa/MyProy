@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Red Neuronal con Brain.js</title>
+  <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.2/dist/brain-browser.min.js"></script>
+  <style>
+    table {
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid black;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Red Neuronal con Brain.js</h1>
+  <button id="generar-datos">Generar datos aleatorios</button>
+  <button id="entrenar-red">Entrenar red neuronal</button>
+  <button id="predecir">Predecir valor</button>
+  <div id="resultado-prediccion"></div>
+
+  <table id="tabla-datos">
+    <thead>
+      <tr>
+        <th>Datos aleatorios</th>
+        <th>Datos de entrenamiento</th>
+      </tr>
+    </thead>
+    <tbody id="cuerpo-tabla">
+    </tbody>
+  </table>
+
+  <script>
+    // Configuración de la red neuronal
+    const config = {
+      activation: 'sigmoid',
+      hiddenLayers: [3],
+      iterations: 2000,
+      learningRate: 0.1
+    };
+
+    // Crear la red neuronal
+    const net = new brain.NeuralNetwork(config);
+
+    // Generar datos aleatorios
+    const generarDatosAleatorios = () => {
+      const datos = [];
+      for (let i = 0; i < 10; i++) {
+        datos.push(Math.random());
+      }
+      return datos;
+    };
+
+    // Entrenar la red neuronal
+    const entrenarRed = () => {
+      const datos = generarDatosAleatorios();
+      const entrenamiento = [];
+      for (let i = 0; i < datos.length; i++) {
+        entrenamiento.push({ input: [datos[i]], output: [datos[i] * 2] });
+      }
+      net.train(entrenamiento);
+      return entrenamiento;
+    };
+
+    // Predecir valor
+    const predecir = () => {
+      const datos = generarDatosAleatorios();
+      const prediccion = net.run([datos[0]]);
+      document.getElementById('resultado-prediccion').innerHTML = `Predicción: ${prediccion[0].toFixed(2)}`;
+    };
+
+    // Eventos de los botones
+    document.getElementById('generar-datos').addEventListener('click', () => {
+      const datos = generarDatosAleatorios();
+      const cuerpoTabla = document.getElementById('cuerpo-tabla');
+      cuerpoTabla.innerHTML = '';
+      datos.forEach(dato => {
+        const fila = document.createElement('tr');
+        const celda = document.createElement('td');
+        celda.innerHTML = dato;
+        fila.appendChild(celda);
+        cuerpoTabla.appendChild(fila);
+      });
+    });
+
+    document.getElementById('entrenar-red').addEventListener('click', () => {
+      const entrenamiento = entrenarRed();
+      const cuerpoTabla = document.getElementById('cuerpo-tabla');
+      cuerpoTabla.innerHTML = '';
+      entrenamiento.forEach(ejemplo => {
+        const fila = document.createElement('tr');
+        const celda1 = document.createElement('td');
+        celda1.innerHTML = ejemplo.input[0];
+        const celda2 = document.createElement('td');
+        celda2.innerHTML = ejemplo.output[0];
+        fila.appendChild(celda1);
+        fila.appendChild(celda2);
+        cuerpoTabla.appendChild(fila);
+      });
+    });
+
+    document.getElementById('predecir').addEventListener('click', predecir);
+  </script>
+</body>
+</html>

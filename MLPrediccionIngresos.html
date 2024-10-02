@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción de Ingresos Municipales</title>
+    <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.2/dist/brain-browser.min.js"></script>
+    <style>
+        table {
+            width: 80%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Predicción de Ingresos Municipales</h1>
+    <p id="prediction">Entrenando la red neuronal, por favor espera...</p>
+
+    <h2>Datos de Entrenamiento</h2>
+    <table id="training-data-table">
+        <thead>
+            <tr>
+                <th>Mes</th>
+                <th>Impuestos</th>
+                <th>Tasas</th>
+                <th>Otros Ingresos</th>
+                <th>Total Ingresos</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Filas de datos se agregarán aquí -->
+        </tbody>
+    </table>
+
+    <h2>Predicción</h2>
+    <table id="prediction-data-table">
+        <thead>
+            <tr>
+                <th>Mes</th>
+                <th>Impuestos</th>
+                <th>Tasas</th>
+                <th>Otros Ingresos</th>
+                <th>Predicción Total Ingresos</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Filas de predicción se agregarán aquí -->
+        </tbody>
+    </table>
+
+    <script>
+        // Verificar si la biblioteca Brain.js está cargada
+        if (typeof brain === 'undefined') {
+            document.getElementById('prediction').innerText = 'Error: No se pudo cargar Brain.js';
+            throw new Error('No se pudo cargar Brain.js');
+        }
+
+        // Datos de entrenamiento simulados
+        const trainingData = [
+            { month: 1, taxes: 10000, fees: 5000, other: 2000, total: 17000 },
+            { month: 2, taxes: 12000, fees: 5500, other: 2200, total: 19700 },
+            { month: 3, taxes: 8000, fees: 4800, other: 2100, total: 14900 },
+            { month: 4, taxes: 15000, fees: 6000, other: 2500, total: 23500 },
+            { month: 5, taxes: 11000, fees: 5300, other: 2300, total: 18600 },
+            { month: 6, taxes: 13000, fees: 5800, other: 2400, total: 21200 },
+            { month: 7, taxes: 14000, fees: 6200, other: 2600, total: 22800 },
+            { month: 8, taxes: 9500, fees: 5000, other: 2200, total: 16700 },
+            { month: 9, taxes: 10500, fees: 5400, other: 2400, total: 18300 },
+            { month: 10, taxes: 11500, fees: 5600, other: 2500, total: 19600 },
+            { month: 11, taxes: 9000, fees: 4800, other: 2300, total: 16100 },
+            { month: 12, taxes: 12500, fees: 6000, other: 2700, total: 21200 }
+        ];
+
+        // Normalizar los datos de entrenamiento
+        const normalize = data => ({
+            input: [data.month / 12, data.taxes / 20000, data.fees / 10000, data.other / 5000],
+            output: [data.total / 30000]
+        });
+
+        const normalizedTrainingData = trainingData.map(normalize);
+
+        // Mostrar los datos de entrenamiento en la tabla
+        const trainingTableBody = document.getElementById('training-data-table').querySelector('tbody');
+        trainingData.forEach(item => {
+            const row = document.createElement('tr');
+            Object.values(item).forEach(value => {
+                const cell = document.createElement('td');
+                cell.innerText = value;
+                row.appendChild(cell);
+            });
+            trainingTableBody.appendChild(row);
+        });
+
+        // Configurar la red neuronal
+        const net = new brain.NeuralNetwork();
+
+        // Entrenar la red neuronal
+        net.train(normalizedTrainingData, {
+            iterations: 2000,
+            log: true,
+            logPeriod: 100,
+            learningRate: 0.3
+        });
+
+        // Datos de prueba para predicción
+        const testData = [
+            { month: 1, taxes: 13000, fees: 5400, other: 2400 },
+            { month: 2, taxes: 12500, fees: 5700, other: 2300 },
+            { month: 3, taxes: 11500, fees: 5200, other: 2200 }
+        ];
+
+        // Normalizar los datos de prueba
+        const normalizeTestData = data => [data.month / 12, data.taxes / 20000, data.fees / 10000, data.other / 5000];
+
+        const normalizedTestData = testData.map(normalizeTestData);
+
+        // Hacer predicciones y mostrar los resultados en la tabla
+        const predictionTableBody = document.getElementById('prediction-data-table').querySelector('tbody');
+        testData.forEach((item, index) => {
+            const prediction = net.run(normalizedTestData[index]);
+            const row = document.createElement('tr');
+            Object.values(item).forEach(value => {
+                const cell = document.createElement('td');
+                cell.innerText = value;
+                row.appendChild(cell);
+            });
+            const predictionCell = document.createElement('td');
+            predictionCell.innerText = Math.round(prediction[0] * 30000);
+            row.appendChild(predictionCell);
+            predictionTableBody.appendChild(row);
+        });
+
+        // Actualizar mensaje de estado
+        document.getElementById('prediction').innerText = 'Entrenamiento completado. Predicciones realizadas.';
+    </script>
+</body>
+</html>

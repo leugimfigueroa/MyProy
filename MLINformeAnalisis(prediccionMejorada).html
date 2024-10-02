@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción de Informes de Análisis de Conciliación</title>
+    <!-- Incluir la biblioteca Brain.js -->
+    <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.2/dist/brain-browser.min.js"></script>
+    <style>
+        table {
+            width: 50%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Predicción de Informes de Análisis de Conciliación</h1>
+    <p id="prediction">Entrenando la red neuronal, por favor espera...</p>
+
+    <h2>Datos de Entrenamiento</h2>
+    <table id="training-data-table">
+        <thead>
+            <tr>
+                <th>Mes</th>
+                <th>Informes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Filas de datos se agregarán aquí -->
+        </tbody>
+    </table>
+
+    <script>
+        // Verificar si la biblioteca Brain.js está cargada
+        if (typeof brain === 'undefined') {
+            document.getElementById('prediction').innerText = 'Error: No se pudo cargar Brain.js';
+            throw new Error('No se pudo cargar Brain.js');
+        }
+
+        // Generar datos con un patrón ascendente para los últimos 12 meses
+        const data = [];
+        for (let i = 0; i < 12; i++) {
+            // Aumentar ligeramente el número de informes cada mes
+            data.push({ month: i + 1, reports: 50 + i * 5 + Math.floor(Math.random() * 10) });
+        }
+
+        // Preparar los datos para la red neuronal
+        const trainingData = data.map(item => ({
+            input: [item.month / 12],
+            output: [item.reports / 100]
+        }));
+
+        // Mostrar los datos de entrenamiento en la tabla
+        const tableBody = document.getElementById('training-data-table').querySelector('tbody');
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            const monthCell = document.createElement('td');
+            const reportsCell = document.createElement('td');
+            monthCell.innerText = item.month;
+            reportsCell.innerText = item.reports;
+            row.appendChild(monthCell);
+            row.appendChild(reportsCell);
+            tableBody.appendChild(row);
+        });
+
+        // Configurar la red neuronal
+        const net = new brain.NeuralNetwork();
+
+        // Entrenar la red neuronal y hacer la predicción
+        function trainAndPredict() {
+            net.train(trainingData, {
+                iterations: 2000,
+                log: true,
+                logPeriod: 100,
+                learningRate: 0.3
+            });
+
+            // Hacer la predicción para el próximo mes
+            const nextMonth = 13 / 12; // El próximo mes en formato normalizado
+            const prediction = net.run([nextMonth]) * 100; // Desnormalizar la salida
+
+            // Mostrar la predicción en la página
+            document.getElementById('prediction').innerText = `Predicción para el próximo mes: ${Math.round(prediction)} informes`;
+
+            // Mostrar datos en consola para verificación
+            console.log('Datos de entrenamiento:', trainingData);
+            console.log('Predicción:', Math.round(prediction));
+        }
+
+        // Ejecutar el entrenamiento y la predicción
+        trainAndPredict();
+    </script>
+</body>
+</html>

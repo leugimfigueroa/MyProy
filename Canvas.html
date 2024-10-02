@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Canvas Example</title>
+</head>
+<body>
+    <canvas id="myCanvas" width="400" height="400" style="border:1px solid #000000;"></canvas>
+    <script>
+        var canvas = document.getElementById('myCanvas');
+        var ctx = canvas.getContext('2d');
+
+        // Dibujar un círculo
+        ctx.beginPath();
+        ctx.arc(200, 200, 100, 0, 2 * Math.PI);
+        ctx.fillStyle = 'blue';
+        ctx.fill();
+
+        // Dibujar una línea
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(400, 400);
+        ctx.stroke();
+
+        // Dibujar texto
+        ctx.font = '30px Arial';
+        ctx.fillText('Hola, Canvas!', 100, 50);
+    </script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+formatDateTime(first(outputs('Enumerar_las_filas_de_una_tabla')?['body/value'])['fecha'], 'dd/MM/yyyy')
+✅ Solución: @{first(outputs('Enumerar_las_filas_de_una_tabla')?['body/value'])['DescripSolucion']}
